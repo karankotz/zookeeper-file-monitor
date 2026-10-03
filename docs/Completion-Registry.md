@@ -37,4 +37,4 @@ That separation keeps the design clean: ZooKeeper does coordination, the databas
 
 ## Checking the registry
 
-A node checks the registry **before** trying to claim a file, and records `COMPLETED` (ideally in the same transaction as the processing side effects) **before** releasing the ZooKeeper znode. See [Processing Algorithm](Processing-Algorithm).
+A node checks the registry **before** trying to claim a file, and records `COMPLETED` (ideally in the same transaction as the processing side effects) **before** releasing the ZooKeeper znode. See [Processing Algorithm](Processing-Algorithm.md).

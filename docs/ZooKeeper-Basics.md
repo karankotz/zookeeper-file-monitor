@@ -37,4 +37,4 @@ In production ZooKeeper runs as an **ensemble** (typically 3 or 5 servers). Writ
 
 ## Apache Curator
 
-[Curator](https://curator.apache.org/) is a client library on top of ZooKeeper that handles connection retries, session re-establishment and provides recipes such as `InterProcessMutex`. See [Design Decisions](Design-Decisions).
+[Curator](https://curator.apache.org/) is a client library on top of ZooKeeper that handles connection retries, session re-establishment and provides recipes such as `InterProcessMutex`. See [Design Decisions](Design-Decisions.md).

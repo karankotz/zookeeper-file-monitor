@@ -90,4 +90,4 @@ for (Path file : filesInDirectory) {
 }
 ```
 
-⚠️ This alone is **not** enough to prevent duplicates — see [Failure Scenarios](Failure-Scenarios) and [Completion Registry](Completion-Registry).
+⚠️ This alone is **not** enough to prevent duplicates — see [Failure Scenarios](Failure-Scenarios.md) and [Completion Registry](Completion-Registry.md).

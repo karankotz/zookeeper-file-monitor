@@ -40,4 +40,4 @@ ZooKeeper is a distributed coordination service. It gives us exactly the primiti
 - **ephemeral nodes** that disappear when the owner's session dies → **automatic recovery**,
 - strong ordering and consistency across the ensemble.
 
-Goal 4 needs something durable in addition — see [Completion Registry](Completion-Registry).
+Goal 4 needs something durable in addition — see [Completion Registry](Completion-Registry.md).
