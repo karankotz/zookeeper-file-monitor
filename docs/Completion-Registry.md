@@ -1,5 +1,7 @@
 # Completion Registry
 
+> **Implementation:** this registry is an AWS DynamoDB table. See [DynamoDB Registry](DynamoDB-Registry.md).
+
 ## Why we need it
 
 ZooKeeper ownership only prevents **simultaneous** processing. Once the ephemeral znode is gone (released or session expired), ZooKeeper has no memory that the file was ever handled. We need a **durable registry** of processing status.

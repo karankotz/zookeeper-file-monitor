@@ -40,6 +40,29 @@ A node restarts and its `WatchService` re-scans the folder, or the file wasn't m
 
 ✅ Handled by the **completion registry** — `COMPLETED` files are skipped.
 
+## 4. Stalled worker comes back after losing its session ("zombie")
+
+```
+node-a claims file, starts processing
+node-a stalls (long GC pause / network partition) > session timeout
+ZooKeeper expires node-a's session -> claim deleted
+node-b claims the file, markProcessing sets workerId = node-b
+node-b completes the file
+node-a wakes up and tries markCompleted
+```
+
+✅ Handled by **fencing in DynamoDB**. `markCompleted` has the condition `workerId = :me`, so node-a's write is rejected and its stale result is discarded. node-a's `release()` also checks that the znode's `ephemeralOwner` is still its own session, so it can't delete a claim that now belongs to node-b.
+
+This is covered by the test `workerThatLosesItsSessionIsFencedAndAnotherWorkerTakesOver`.
+
+## 5. Crashed worker's files have no new filesystem event
+
+✅ Handled by the **periodic rescan**. Survivors find the file on the next rescan once the claim expires. Observed in the [demo](Running-the-Demo.md): node-1 killed at 14:31:52, its files re-claimed as attempt 2 at 14:32:05.
+
+## 6. Processing keeps failing
+
+✅ `markFailed` records the error and the file is retried on later rescans. After `MAX_ATTEMPTS` it is moved to `failed/`.
+
 ## Summary
 
 ```

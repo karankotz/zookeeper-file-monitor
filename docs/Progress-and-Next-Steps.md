@@ -1,21 +1,30 @@
 # Progress and Next Steps
 
-## ✅ Done (design phase)
+## ✅ Phase 1 — Design
 
 - Defined the problem: multiple nodes monitoring one shared folder → duplicate processing.
 - Chose ZooKeeper as the coordination service.
 - Designed **per-file ephemeral ownership znodes** (`/processing/<fileId>`).
 - Identified the **crash-after-side-effect** duplicate window.
-- Added a durable **completion registry** (`fileId`, `status`, `workerId`, `attempts`, `processedAt`).
+- Added a durable **completion registry**.
 - Settled the principle: *ZooKeeper = who owns it now, registry = already done?*
-- Decided on deterministic `fileId` (SHA-256 of path), per-file locks over a global lock, and Curator as the client.
+
+## ✅ Phase 2 — Implementation
+
+- Java 21 worker using **Apache Curator** (`OwnershipManager`) and **AWS SDK v2** (`DynamoDbFileRegistry`).
+- **AWS DynamoDB** as the registry, with conditional writes for idempotency and **fencing** of stale workers.
+- `WatchService` plus a **periodic rescan** to find new files and files orphaned by crashed workers.
+- Live worker registration under `/file-monitor/workers`.
+- Retry with `MAX_ATTEMPTS`, then move to `failed/`.
+- `status` command showing ZooKeeper state and the DynamoDB registry side by side.
+- Local infrastructure without Docker: a 3-server ZooKeeper ensemble and DynamoDB Local in one JVM.
+- Integration tests (real ZooKeeper and DynamoDB Local): exactly-once across 3 nodes, crash takeover, fencing, claim exclusivity.
+- Demo verified: `kill -9` of a worker mid-file, its files completed by the survivors as attempt 2. See [Running the Demo](Running-the-Demo.md).
 
 ## ⏭️ Next steps
 
-- [ ] Docker Compose setup: 3-node ZooKeeper ensemble + database.
-- [ ] Java worker service: `WatchService` + Curator + ownership znode logic.
-- [ ] Completion registry table and repository.
-- [ ] Idempotent processing (upsert keyed by `fileId`).
-- [ ] Demo script: start 3 workers, drop files, show each file processed once.
-- [ ] Failure demo: kill a worker mid-file and show another worker take over.
-- [ ] Stale/orphan handling: retry `FAILED` files, cap `attempts`.
+- [ ] Run against a real AWS DynamoDB table (instructions in [DynamoDB Registry](DynamoDB-Registry.md)).
+- [ ] Docker Compose / Kubernetes deployment of a real ZooKeeper ensemble and the workers.
+- [ ] Demo of killing a **ZooKeeper server** (not a worker) to show the ensemble keeps working with a quorum.
+- [ ] Metrics: files processed, attempts, takeover count.
+- [ ] Stuck-`PROCESSING` report: registry rows in PROCESSING with no live claim.

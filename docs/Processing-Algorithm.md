@@ -56,6 +56,23 @@ lock D        lock E        lock F
 process D     process E     process F
 ```
 
+## In the real code
+
+[`FileMonitorNode.handle()`](../src/main/java/com/karankotz/filemonitor/FileMonitorNode.java) implements this flow:
+
+1. `registry.isCompleted(fileId)`: skip (and archive) files that are already done
+2. `ownership.tryClaim(fileId)`: ephemeral znode `/file-monitor/processing/<fileId>`
+3. `registry.markProcessing(...)`: conditional write, `attempts + 1`
+4. `processor.process(file)`
+5. `registry.markCompleted(...)`: result + COMPLETED in one write, **fenced** on `workerId`
+6. move to `processed/`
+7. `ownership.release(claim)`: deletes the znode **only if our session still owns it**
+
+Two things the sketch below leaves out:
+
+- **Periodic rescan.** `WatchService` only reports *new* events. A file whose owner crashed produces no new event, so each node also rescans the inbox every `RESCAN_INTERVAL_MS`. That is how the survivors find orphaned files.
+- **Write-then-rename.** Producers write `name.tmp` and rename it when done. Workers ignore `*.tmp` and dotfiles, so they never read half-written files.
+
 ## Java sketch
 
 ```java

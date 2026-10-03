@@ -7,7 +7,7 @@ flowchart TB
     W2[Worker 2]
     W3[Worker 3]
     ZK{{ZooKeeper Ensemble<br/>/processing/&lt;fileId&gt;}}
-    DB[(Completion Registry DB)]
+    DB[(DynamoDB<br/>FileRegistry table)]
 
     FS --> W1 & W2 & W3
     W1 & W2 & W3 <--> ZK
@@ -30,13 +30,14 @@ ASCII version:
        /processing/<fileId>        <- live ownership
                   |
                   v
-        Processing Database         <- durable completion registry
+        DynamoDB: FileRegistry      <- durable completion registry
         +--------------------+
-        | fileId             |
+        | fileId  (PK)       |
         | status             |
         | workerId           |
         | attempts           |
-        | processedAt        |
+        | updatedAt          |
+        | lineCount (result) |
         +--------------------+
 ```
 
@@ -47,13 +48,14 @@ ASCII version:
 | **Shared folder** | Source of incoming files, visible to all workers |
 | **Worker node** | Watches the folder, claims files, processes them |
 | **ZooKeeper** | Answers *"who owns this file right now?"* — temporary, tied to worker sessions |
-| **Completion registry** | Answers *"has this file already been processed?"* — durable, survives crashes |
+| **Completion registry (DynamoDB)** | Answers *"has this file already been processed?"* — durable, survives crashes. See [DynamoDB Registry](DynamoDB-Registry.md) |
 
 ## Znode layout
 
 ```
-/processing                     (persistent)
-    /<fileId>                   (ephemeral)  data: nodeId, hostname, startTime
+/file-monitor                          (persistent, container)
+    /workers/<nodeId>                  (ephemeral)  which workers are alive
+    /processing/<fileId>               (ephemeral)  data: nodeId, startTime
 ```
 
 Example:

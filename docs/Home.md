@@ -8,7 +8,9 @@ This wiki explains **how Apache ZooKeeper works** by walking through a concrete 
 
 ## The solution in one sentence
 
-> Before processing a file, a node must win ownership of it in ZooKeeper (by creating an *ephemeral znode*), and a durable *completion registry* records which files are already done.
+> Before processing a file, a node must win ownership of it in ZooKeeper (by creating an *ephemeral znode*), and a durable *completion registry* in **AWS DynamoDB** records which files are already done.
+
+The working implementation (Java 21, Apache Curator, AWS SDK v2) is in this repo. See [Running the Demo](Running-the-Demo.md).
 
 ## Pages
 
@@ -21,7 +23,9 @@ This wiki explains **how Apache ZooKeeper works** by walking through a concrete 
 | [Completion Registry](Completion-Registry.md) | Why ZooKeeper alone is not enough, and the durable "already processed?" record |
 | [Processing Algorithm](Processing-Algorithm.md) | Step-by-step flow every node runs, with Java code |
 | [Failure Scenarios](Failure-Scenarios.md) | Node crashes, the duplicate window, and how idempotency closes it |
+| [DynamoDB Registry](DynamoDB-Registry.md) | The registry table in AWS DynamoDB, conditional writes and fencing |
 | [Design Decisions](Design-Decisions.md) | Per-file vs. global lock, raw ZooKeeper vs. Curator, znode naming |
+| [Running the Demo](Running-the-Demo.md) | Run 3 workers locally, kill one, watch the others take over |
 | [Progress and Next Steps](Progress-and-Next-Steps.md) | What is done so far and what's planned |
 
 ## Key takeaway
